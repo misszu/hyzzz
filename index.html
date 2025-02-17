@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pangalan ng Site</title>
+
+    <style>
+        /* Global Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background: radial-gradient(circle, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.9));
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: #fff;
+            flex-direction: column;
+        }
+
+        /* Custom Font */
+        @font-face {
+            font-family: 'CustomFont';
+            src: url('path-to-your-font-file.ttf'); /* Adjust the path to your font file */
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        /* Playlist Dedication */
+        .playlist-dedication {
+            font-family: 'CustomFont', sans-serif; /* Apply custom font */
+            margin-top: 20px;
+            font-size: 2.5em;
+            text-align: center;
+            font-weight: 700;
+            color: #d3d3d3;
+            z-index: 10;
+            padding: 0 20px; /* To prevent overflow */
+        }
+
+        h2 {
+            margin-top: 20px;
+            font-size: 2em;
+            text-align: center;
+            font-weight: 700;
+            color: #fff;
+            z-index: 10;
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            width: 600px;
+            height: 450px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            z-index: 5;
+            flex-direction: column;
+        }
+
+        /* Album Container */
+        .album-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            z-index: 3;
+            overflow: hidden;
+            transition: all 0.5s ease; /* Smooth transition */
+        }
+
+        .album {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Disc */
+        .disc {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            position: absolute;
+            top: 60px;
+            left: 60px;
+            transition: transform 1.5s ease-out;
+        }
+
+        .spinning {
+            animation: spin 3s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Song Name Display */
+        .song-title {
+            margin-top: 15px;
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            color: #FFD93D;
+        }
+
+        /* Lyrics */
+        .lyrics {
+            width: 80%;
+            max-width: 500px;
+            margin-top: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, #ffffff, #d3d3d3);
+            color: black;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 12px;
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        /* Buttons */
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 18px;
+            font-weight: 700;
+            background: #FFD93D;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+            box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        button:hover {
+            background: #FF6B6B;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Playlist Dedication -->
+    <div class="playlist-dedication">
+        I dedicate this playlist to you, because it perfectly expresses how I feel without you
+    </div>
+
+    <div class="container">
+        <div class="album-container" id="albumContainer">
+            <div class="album" id="albumCover"></div>
+            <div class="disc" id="disc"></div>
+        </div>
+
+        <div class="song-title" id="songTitle">Now Playing: Song 1</div>
+
+        <div class="buttons">
+            <button id="prevButton">⏮ Prev</button>
+            <button id="playButton">▶ Play</button>
+            <button id="nextButton">⏭ Next</button>
+            <button id="lyricsButton">📜 Show Lyrics</button>
+        </div>
+    </div>
+
+    <div class="lyrics" id="lyrics"></div>
+
+    <audio id="audio"></audio>
+
+    <script>
+        const audio = document.getElementById("audio");
+        const playButton = document.getElementById("playButton");
+        const prevButton = document.getElementById("prevButton");
+        const nextButton = document.getElementById("nextButton");
+        const disc = document.getElementById("disc");
+        const lyricsButton = document.getElementById("lyricsButton");
+        const lyrics = document.getElementById("lyrics");
+        const albumCover = document.getElementById("albumCover");
+        const songTitle = document.getElementById("songTitle");
+
+        let currentSongIndex = 0;
+        let isPlaying = false;
+
+        const songs = [
+            { name: "Hirap Kalimutan", src: "song1.mp3", lyrics: "Balik na Po Ikaw:(", album: "album1.png", disc: "disc1.png" },
+            { name: "Kathang Isip", src: "song2.mp3", lyrics: "Miss na Miss na po kita Much Much", album: "album2.png", disc: "disc2.png" },
+            { name: "On Bended knee", src: "song3.mp3", lyrics: "Please Baby koee:c", album: "album3.png", disc: "disc3.png" },
+            { name: "Back to December", src: "song4.mp3", lyrics: "I really don't want to be your ex po, like, I can't even imagine it. I just need to be with you forever poo please:((", album: "album4.png", disc: "disc4.png" },
+            { name: "Beer", src: "song5.mp3", lyrics: "pleaseee comeback home na po i miss you sobra sobra", album: "album5.png", disc: "disc5.png" }
+        ];
+
+        function loadSong(index) {
+            audio.src = songs[index].src;
+            songTitle.textContent = `Now Playing: ${songs[index].name}`;
+            lyrics.innerHTML = songs[index].lyrics;
+            albumCover.style.background = `url('${songs[index].album}') no-repeat center center / cover`;
+            disc.style.background = `url('${songs[index].disc}') no-repeat center center / cover`;
+        }
+
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play();
+                playButton.textContent = "⏸ Pause";
+                disc.classList.add("spinning");
+            } else {
+                audio.pause();
+                playButton.textContent = "▶ Play";
+                disc.classList.remove("spinning");
+            }
+        }
+
+        function nextSong() {
+            currentSongIndex = (currentSongIndex + 1) % songs.length;
+            loadSong(currentSongIndex);
+            audio.play();
+            playButton.textContent = "⏸ Pause";
+            disc.classList.add("spinning");
+        }
+
+        function prevSong() {
+            currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+            loadSong(currentSongIndex);
+            audio.play();
+            playButton.textContent = "⏸ Pause";
+            disc.classList.add("spinning");
+        }
+
+        function toggleLyrics() {
+            lyrics.style.display = lyrics.style.display === "block" ? "none" : "block";
+            lyricsButton.textContent = lyrics.style.display === "block" ? "📜 Hide Lyrics" : "📜 Show Lyrics";
+        }
+
+        playButton.addEventListener("click", togglePlay);
+        nextButton.addEventListener("click", nextSong);
+        prevButton.addEventListener("click", prevSong);
+        lyricsButton.addEventListener("click", toggleLyrics);
+
+        loadSong(currentSongIndex);
+    </script>
+
+</body>
+</html>
